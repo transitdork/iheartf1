@@ -236,11 +236,11 @@ nav.tabs {
 
 <nav class="tabs">
   <button class="tab active" id="tab-live" onclick="switchTab('live')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13.5L5 11l2.5-.5L9 9h6l1.5 1.5 2.5.5 2 1L21 13.5H3Z"/><circle cx="7.5" cy="15.5" r="1.5"/><circle cx="16.5" cy="15.5" r="1.5"/><path d="M10 9l1-1.5h2L14 9"/><path d="M19 11V9h3"/><path d="M3 13.5l-2 1.5h4"/></svg>
     Live
   </button>
   <button class="tab" id="tab-standings" onclick="switchTab('standings')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="2" width="2" height="20" rx="1"/><rect x="5" y="2" width="5" height="4"/><rect x="15" y="2" width="4" height="4"/><rect x="10" y="6" width="5" height="4"/><rect x="5" y="10" width="5" height="4"/><rect x="15" y="10" width="4" height="4"/><rect x="5" y="2" width="14" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
     Standings
   </button>
   <button class="tab" id="tab-schedule" onclick="switchTab('schedule')">
@@ -332,48 +332,81 @@ function setStandingsTab(sub) {
 }
 
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
-// Tries direct fetch first, then falls back through two CORS proxies.
-// This handles: direct HTTP hosting, and local file:// opening on iPad.
-function get(url, timeoutMs) {
-  timeoutMs = timeoutMs || 8000;
 
+// JSONP: works from file:// (uses <script> tag, bypasses CORS entirely)
+// Used for all Jolpica/Ergast endpoints.
+function getJSONP(url, timeoutMs) {
+  timeoutMs = timeoutMs || 12000;
+  return new Promise(function(resolve, reject) {
+    var cbName = '_f1cb' + Date.now() + Math.random().toString(36).slice(2, 7);
+    var script = document.createElement('script');
+    var done = false;
+    var timer = setTimeout(function() {
+      if (done) return; done = true;
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      reject(new Error('JSONP timed out'));
+    }, timeoutMs);
+    window[cbName] = function(data) {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) document.head.removeChild(script);
+      resolve(data);
+    };
+    script.onerror = function() {
+      if (done) return; done = true;
+      clearTimeout(timer);
+      delete window[cbName];
+      reject(new Error('JSONP script error'));
+    };
+    var sep = url.indexOf('?') >= 0 ? '&' : '?';
+    script.src = url + sep + 'callback=' + cbName;
+    document.head.appendChild(script);
+  });
+}
+
+// Proxy-based fetch: tries direct, then two CORS proxies.
+// Used for OpenF1 and Wikipedia (which don't support JSONP).
+function get(url, timeoutMs) {
+  timeoutMs = timeoutMs || 10000;
   var candidates = [
     url,
     'https://corsproxy.io/?' + encodeURIComponent(url),
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(url)
   ];
-
   var lastErr = null;
-
   function attempt(i) {
     if (i >= candidates.length) {
       return Promise.reject(lastErr || new Error('All ' + candidates.length + ' fetch attempts failed'));
     }
     var target = candidates[i];
     var label = i === 0 ? 'direct' : 'proxy-' + i;
-    console.log('[F1] Fetching via ' + label + ': ' + target.substring(0, 80));
-
+    console.log('[F1] fetch via ' + label);
     var timeoutP = new Promise(function(_, rej) {
-      setTimeout(function() { rej(new Error('Timed out (' + timeoutMs/1000 + 's)')); }, timeoutMs);
+      setTimeout(function() { rej(new Error('Timed out (' + timeoutMs/1000 + 's) — tried ' + (i+1) + '/3 routes')); }, timeoutMs);
     });
-
     var fetchP = fetch(target).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.text();
     }).then(function(t) {
-      var parsed = JSON.parse(t);
-      console.log('[F1] Success via ' + label);
-      return parsed;
+      return JSON.parse(t);
     });
-
     return Promise.race([fetchP, timeoutP]).catch(function(e) {
-      console.warn('[F1] ' + label + ' failed: ' + e.message);
-      lastErr = new Error(e.message + ' (tried ' + (i + 1) + '/' + candidates.length + ' routes)');
+      lastErr = e;
       return attempt(i + 1);
     });
   }
-
   return attempt(0);
+}
+
+// Jolpica wrapper: tries JSONP first (always works on iPad from file://),
+// falls back to proxy fetch if JSONP fails.
+function jolpicaGet(url) {
+  return getJSONP(url, 12000).catch(function(e) {
+    console.warn('[F1] JSONP failed (' + e.message + '), trying proxy…');
+    return get(url, 10000);
+  });
 }
 
 // ─── LIVE TAB ─────────────────────────────────────────────────────────────────
@@ -595,7 +628,7 @@ async function renderNoSession() {
   // Ensure schedule loaded
   if (!S.schedule) {
     try {
-      const data = await get(JOLPICA + '/current.json');
+      const data = await jolpicaGet(JOLPICA + '/current.json');
       if (data && data.MRData && data.MRData.RaceTable) {
         S.schedule = data.MRData.RaceTable.Races;
       }
@@ -605,10 +638,10 @@ async function renderNoSession() {
   // Ensure standings loaded for top 5
   if (!S.driverStandings) {
     try {
-      const drv = await get(JOLPICA + '/current/driverStandings.json');
+      const drv = await jolpicaGet(JOLPICA + '/current/driverStandings.json');
       const list = drv && drv.MRData && drv.MRData.StandingsTable && drv.MRData.StandingsTable.StandingsLists;
       S.driverStandings = (list && list.length) ? list[0].DriverStandings : [];
-      const con = await get(JOLPICA + '/current/constructorStandings.json');
+      const con = await jolpicaGet(JOLPICA + '/current/constructorStandings.json');
       const clist = con && con.MRData && con.MRData.StandingsTable && con.MRData.StandingsTable.StandingsLists;
       S.constructorStandings = (clist && clist.length) ? clist[0].ConstructorStandings : [];
     } catch(e) { console.warn('Standings load failed:', e.message); }
@@ -723,8 +756,8 @@ async function renderNoSession() {
 async function loadStandings() {
   try {
     const [drv, con] = await Promise.all([
-      get(`${JOLPICA}/current/driverStandings.json`),
-      get(`${JOLPICA}/current/constructorStandings.json`),
+      jolpicaGet(`${JOLPICA}/current/driverStandings.json`),
+      jolpicaGet(`${JOLPICA}/current/constructorStandings.json`),
     ]);
     const drvList = drv?.MRData?.StandingsTable?.StandingsLists;
     const conList = con?.MRData?.StandingsTable?.StandingsLists;
@@ -795,7 +828,7 @@ function renderStandings() {
 // ─── SCHEDULE ─────────────────────────────────────────────────────────────────
 async function loadSchedule() {
   try {
-    const data = await get(`${JOLPICA}/current.json`);
+    const data = await jolpicaGet(`${JOLPICA}/current.json`);
     S.schedule = data.MRData.RaceTable.Races;
     renderSchedule();
   } catch(e) {
@@ -867,7 +900,7 @@ document.querySelector('.section-hd').textContent = YEAR + ' Season Calendar';
 loadLive();
 
 // Preload schedule in background (needed for "no session" view)
-get(`${JOLPICA}/current.json`)
+jolpicaGet(`${JOLPICA}/current.json`)
   .then(data => { 
     if (data?.MRData?.RaceTable?.Races) {
       S.schedule = data.MRData.RaceTable.Races; 
