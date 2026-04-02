@@ -739,7 +739,7 @@ async function renderNoSession() {
     get('https://en.wikipedia.org/api/rest_v1/page/summary/'+wikiKey).then(d=>{
       const img=d?.thumbnail?.source;
       const slot=document.getElementById('ns-img-slot');
-      if(img&&slot) slot.innerHTML='<img class="ns-img" src="'+img+'" onerror="this.style.display='none'">';
+      if(img&&slot) slot.innerHTML='<img class="ns-img" src="'+img+'" onerror="this.remove()">';
     }).catch(()=>{});
   }
 
@@ -892,7 +892,7 @@ async function loadHistory() {
   let html='';
   for(const race of pastRaces) {
     const winner=race.Results?race.Results[0]?.Driver?.familyName:'Tap to view';
-    html+='<div class="hist-race has-results" onclick="showHistoryRound(''+race.round+'')"><div class="hist-rnd">'+race.round+'</div><div class="hist-info"><div class="hist-name">'+race.raceName+'</div><div class="hist-winner">'+fmtDate(race.date)+(winner&&winner!=='Tap to view'?' · 🏆 '+winner:'')+'</div></div><div class="hist-arrow">›</div></div>';
+    html+='<div class="hist-race has-results" onclick=\"showHistoryRound(\x27\"+race.round+\"\x27)\"><div class="hist-rnd">'+race.round+'</div><div class="hist-info"><div class="hist-name">'+race.raceName+'</div><div class="hist-winner">'+fmtDate(race.date)+(winner&&winner!=='Tap to view'?' · 🏆 '+winner:'')+'</div></div><div class="hist-arrow">›</div></div>';
   }
   document.getElementById('historyContent').innerHTML=html;
 }
