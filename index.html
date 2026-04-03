@@ -249,9 +249,7 @@ nav.tabs{height:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));background:
     </div>
     <div id="newsContent"><div class="loader"><div class="spinner"></div>Loading stories…</div></div>
   </div>
-  <div id="pane-tracks" class="pane">
-    <div class="section-hd" id="tracksHd">2026 Circuits</div>
-    <div id="tracksContent"><div class="loader"><div class="spinner"></div>Loading circuits…</div></div>
+<div id="tracksContent"><div class="loader"><div class="spinner"></div>Loading circuits…</div></div>
   </div>
   <div id="pane-history" class="pane">
     <div class="section-hd" id="historyHd">Race Results</div>
@@ -284,10 +282,6 @@ nav.tabs{height:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));background:
   <button class="tab" id="tab-news" onclick="switchTab('news')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="13" y2="16"/></svg>
     News
-  </button>
-  <button class="tab" id="tab-tracks" onclick="switchTab('tracks')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 C3 17 5 7 9 7 C13 7 11 17 15 17 C19 17 21 7 21 7"/><circle cx="6" cy="17" r="1.5" fill="currentColor"/><circle cx="18" cy="7" r="1.5" fill="currentColor"/></svg>
-    Tracks
   </button>
 </nav>
 <script>
@@ -395,6 +389,60 @@ const CIRCUIT_LAYOUT_WIKI = {
 };
 
 
+
+// ── Circuit facts & recent winners (hardcoded) ────────────────────────────────
+const CIRCUIT_FACTS = {
+  bahrain:     ["First F1 race held at night under floodlights in 2014","The Sakhir desert circuit is famous for heavy tyre degradation","Michael Schumacher won the first ever Bahrain GP in 2004","The outer layout used in 2020 is one of the fastest circuits on the calendar"],
+  jeddah:      ["The second-fastest street circuit on the calendar after Monaco","Features 27 corners with very high average speeds over 250 km/h","Drivers have described it as the most dangerous circuit in F1","The walls are extremely close, leaving almost zero margin for error"],
+  albert_park: ["The Melbourne circuit runs through a public park around a lake","It was an Olympic rowing venue before becoming an F1 circuit","Known for unpredictable results — the first race sets the tone for the season","Robert Kubica had a massive crash here in 2007 and walked away unharmed"],
+  suzuka:      ["One of the most loved circuits by drivers — a true drivers track","The iconic figure-of-eight layout is unique in F1","Ayrton Senna and Alain Prost famously collided here in 1989 and 1990","The 130R corner is taken flat out at over 290 km/h"],
+  shanghai:    ["The circuit layout resembles the Chinese character for Shanghai","Features one of the longest straights on the F1 calendar","Michael Schumacher dominated here in the early 2000s","The turn 1-2-3 complex is one of the most challenging sequences in F1"],
+  miami:       ["Built around the Hard Rock Stadium, home of the Miami Dolphins NFL team","The pitlane runs through what was the stadium car park","Features a fake marina with artificial yachts in the infield","One of three American races alongside Austin and Las Vegas"],
+  imola:       ["Named after Enzo and Dino Ferrari, father and son","The circuit was the scene of Ayrton Senna's tragic accident in 1994","It runs through a park and past medieval walls","Ferrari consider it a home race — the Tifosi atmosphere is electric"],
+  monaco:      ["The slowest and most glamorous race on the calendar","Drivers race through the streets of one of the world's smallest countries","The tunnel section goes from daylight to darkness and back in seconds","It is almost impossible to overtake — qualifying position is everything"],
+  villeneuve:  ["Named after Gilles Villeneuve, one of F1's most beloved drivers","Runs along the banks of the St Lawrence River on Notre Dame Island","Known for its long straights and heavy DRS trains","The hairpin at the end of the main straight is one of F1's best overtaking spots"],
+  catalunya:   ["The circuit has been a pre-season testing home for F1 teams since 1991","Teams know this track better than any other — lots of data","Turns 3 and 9 are among the most demanding for tyres on the calendar","Nigel Mansell famously out-braked Ayrton Senna into turn 1 in 1991"],
+  silverstone: ["The home of British motorsport and one of F1's oldest circuits","Part of the circuit was built on a WWII RAF airfield","Copse, Maggotts, Becketts and Chapel is one of the greatest sequences in motorsport","The British fans are some of the loudest and most passionate in F1"],
+  hungaroring: ["Known as the Monaco of the countryside — very hard to overtake","The most corners of any current F1 circuit","Lewis Hamilton has the most wins at any single circuit here with 8 victories","Ferrari and McLaren have historically performed well here"],
+  spa:         ["The longest circuit on the F1 calendar at over 7 km","Raidillon and Eau Rouge is one of the most iconic corners in motorsport","Weather can be completely different at different parts of the circuit","Ayrton Senna called it the greatest circuit in the world"],
+  zandvoort:   ["Located in the sand dunes on the Dutch coast","The banked turns are inspired by 1950s racing circuits","Max Verstappen's home race — the Dutch fans create an incredible orange atmosphere","The circuit was redesigned specifically to return to the F1 calendar in 2021"],
+  monza:       ["The Temple of Speed — the fastest race of the season","Average race speeds regularly exceed 260 km/h","The old banked circuit still exists inside the current layout","Ferrari's home race — the Tifosi pack the grandstands in red"],
+  baku:        ["Runs through the streets of the Azerbaijani capital on the Caspian Sea","The castle section runs through a medieval old city","Features the second longest straight in F1 — over 2 km long","Known for wild safety car periods and last-lap drama"],
+  marina_bay:  ["The world's first purpose-built night race, started in 2008","Drivers lose up to 3 kg in sweat during the race from the heat and humidity","The circuit runs past iconic landmarks including the Marina Bay Sands","Safety car appearances are very common here"],
+  americas:    ["Designed by Hermann Tilke with input from drivers","The elevation change at turn 1 is one of the most dramatic in F1","Features a replica of the famous Maggotts-Becketts complex from Silverstone","The first purpose-built F1 venue in the United States"],
+  rodriguez:   ["Located at 2,285 metres above sea level — the highest F1 circuit","The thin air means engines produce less power and less aerodynamic grip","Named after brothers Ricardo and Pedro Rodriguez, both Mexican racing drivers","The Peraltada corner was one of the most feared in F1 history"],
+  interlagos:  ["The full name is Autodromo Jose Carlos Pace, named after a Brazilian driver","One of the few anti-clockwise circuits on the F1 calendar","Has produced some of the most dramatic championship deciders in F1 history","The weather is extremely unpredictable — rain can arrive in minutes"],
+  las_vegas:   ["F1 returned to Las Vegas in 2023 for the first time since 1982","Drivers race past the famous Las Vegas Strip at speeds over 320 km/h","The race starts late at night to give a spectacular neon backdrop","The weekend sparked huge debate — locals were frustrated by the disruption"],
+  yas_marina:  ["The season-ending race since 2009","The circuit wraps around a luxury hotel that is lit up during the race","Famous for the 2010 finale when Sebastian Vettel won the championship on the last lap","The original layout was redesigned in 2021 to improve overtaking"],
+  losail:      ["Qatar hosted its first F1 race in 2021 as an emergency replacement","The MotoGP circuit was adapted for F1 with minimal changes","The long high-speed corners put extreme loads on tyres","Was awarded a long-term F1 contract from 2023"],
+};
+
+const CIRCUIT_WINNERS = {
+  bahrain:     [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'C. Leclerc',team:'Ferrari'}],
+  jeddah:      [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'S. Perez',team:'Red Bull'},{year:2022,driver:'C. Leclerc',team:'Ferrari'}],
+  albert_park: [{year:2024,driver:'C. Sainz',team:'Ferrari'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'C. Leclerc',team:'Ferrari'}],
+  suzuka:      [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  shanghai:    [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'N/A (no race)',team:''},{year:2019,driver:'L. Hamilton',team:'Mercedes'}],
+  miami:       [{year:2024,driver:'L. Norris',team:'McLaren'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  imola:       [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  monaco:      [{year:2024,driver:'C. Leclerc',team:'Ferrari'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'S. Perez',team:'Red Bull'}],
+  villeneuve:  [{year:2024,driver:'G. Russell',team:'Mercedes'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  catalunya:   [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  silverstone: [{year:2024,driver:'L. Hamilton',team:'Mercedes'},{year:2023,driver:'L. Norris',team:'McLaren'},{year:2022,driver:'C. Sainz',team:'Ferrari'}],
+  hungaroring: [{year:2024,driver:'O. Piastri',team:'McLaren'},{year:2023,driver:'L. Hamilton',team:'Mercedes'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  spa:         [{year:2024,driver:'L. Hamilton',team:'Mercedes'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'C. Verstappen',team:'Red Bull'}],
+  zandvoort:   [{year:2024,driver:'L. Norris',team:'McLaren'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  monza:       [{year:2024,driver:'C. Leclerc',team:'Ferrari'},{year:2023,driver:'C. Sainz',team:'Ferrari'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  baku:        [{year:2024,driver:'O. Piastri',team:'McLaren'},{year:2023,driver:'S. Perez',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  marina_bay:  [{year:2024,driver:'L. Norris',team:'McLaren'},{year:2023,driver:'C. Sainz',team:'Ferrari'},{year:2022,driver:'S. Perez',team:'Red Bull'}],
+  americas:    [{year:2024,driver:'C. Leclerc',team:'Ferrari'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  rodriguez:   [{year:2024,driver:'C. Sainz',team:'Ferrari'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  interlagos:  [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'G. Russell',team:'Mercedes'}],
+  las_vegas:   [{year:2024,driver:'C. Leclerc',team:'Ferrari'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'N/A (inaugural)',team:''}],
+  yas_marina:  [{year:2024,driver:'L. Norris',team:'McLaren'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2022,driver:'M. Verstappen',team:'Red Bull'}],
+  losail:      [{year:2024,driver:'M. Verstappen',team:'Red Bull'},{year:2023,driver:'M. Verstappen',team:'Red Bull'},{year:2021,driver:'L. Hamilton',team:'Mercedes'}],
+};
+
 // ── News & Gossip RSS feeds ───────────────────────────────────────────────────
 const NEWS_FEEDS = {
   news: [
@@ -430,7 +478,7 @@ const S = {
   driverStandings:null,constructorStandings:null,
   schedule:null,lastRace:null,
   historyRound:null,historyResults:null,
-  trackCircuitId:null,
+  trackCurrentRace:null,
   newsTab:'news',newsItems:null,newsPage:0,
   refreshTimer:null,isLive:false,
 };
@@ -548,7 +596,6 @@ async function refreshCurrentTab() {
   else if (S.activeTab === 'standings') { S.driverStandings=null; await loadStandings(); }
   else if (S.activeTab === 'schedule') { S.schedule=null; await loadSchedule(); }
   else if (S.activeTab === 'history') { S.historyResults=null; await loadHistory(); }
-  else if (S.activeTab === 'tracks') { S.trackCircuitId=null; await loadTracks(); }
   else if (S.activeTab === 'news') { S.newsItems=null; await loadNews(); }
 }
 
@@ -562,7 +609,6 @@ function switchTab(tab) {
   if (tab==='standings'&&!S.driverStandings) loadStandings();
   if (tab==='schedule'&&!S.schedule) loadSchedule();
   if (tab==='history') loadHistory();
-  if (tab==='tracks') loadTracks();
   if (tab==='news') loadNews();
 }
 
@@ -1006,18 +1052,195 @@ async function loadSchedule() {
 }
 
 function renderSchedule() {
-  const el=document.getElementById('scheduleContent');
-  if(!S.schedule) return;
-  const now=new Date();let foundNext=false;let html='';
-  for(const race of S.schedule) {
-    const rd=new Date(race.date+(race.time?'T'+race.time:'T00:00:00Z'));
-    const isPast=rd<now;
-    const isNext=!isPast&&!foundNext;
-    if(isNext) foundNext=true;
-    const cls=['race-card',isPast?'past':'',isNext?'next-race':''].filter(Boolean).join(' ');
-    html+='<div class="'+cls+'"><div class="rnd-badge">'+race.round+'</div><div class="race-info">'+(isNext?'<div class="next-lbl">NEXT RACE</div>':'')+'<div class="race-name">'+race.raceName+'</div><div class="race-circuit">'+(race.Circuit?.circuitName||'')+' · '+(race.Circuit?.Location?.country||'')+'</div><div class="race-date">'+fmtDate(race.date)+'</div></div></div>';
+  const el = document.getElementById('scheduleContent');
+  if (!S.schedule) return;
+  const now = new Date();
+  let foundNext = false;
+  const frag = document.createDocumentFragment();
+
+  for (const race of S.schedule) {
+    const rd = new Date(race.date + (race.time ? 'T'+race.time : 'T00:00:00Z'));
+    const isPast = rd < now;
+    const isNext = !isPast && !foundNext;
+    if (isNext) foundNext = true;
+
+    const card = document.createElement('div');
+    const cls = ['race-card', isPast ? 'past' : '', isNext ? 'next-race' : ''].filter(Boolean).join(' ');
+    card.className = cls;
+    card.style.cursor = 'pointer';
+
+    const circuit = race.Circuit || {};
+    const loc = circuit.Location || {};
+    const flag = getCountryFlag(loc.country || '');
+
+    card.innerHTML =
+      '<div class="rnd-badge">' + race.round + '</div>' +
+      '<div class="race-info">' +
+        (isNext ? '<div class="next-lbl">NEXT RACE</div>' : '') +
+        '<div class="race-name">' + race.raceName + '</div>' +
+        '<div class="race-circuit">' + flag + ' ' + (circuit.circuitName || '') + ' · ' + (loc.country || '') + '</div>' +
+        '<div class="race-date">' + fmtDate(race.date) + '</div>' +
+      '</div>' +
+      '<div style="color:var(--muted);font-size:18px;padding-left:6px">›</div>';
+
+    (function(r) {
+      card.addEventListener('click', function() { showTrackDetail(r); });
+    })(race);
+
+    frag.appendChild(card);
   }
-  el.innerHTML=html||'<p style="color:var(--muted);text-align:center;padding:30px">No races found</p>';
+
+  el.innerHTML = '';
+  if (frag.childElementCount === 0) {
+    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:30px">No races found</p>';
+  } else {
+    el.appendChild(frag);
+  }
+}
+
+
+// ── Track detail (opened from Schedule tab) ───────────────────────────────────
+
+async function showTrackDetail(race) {
+  S.trackCurrentRace = race;
+  const schedHd = document.getElementById('scheduleHd');
+  const content  = document.getElementById('scheduleContent');
+
+  const circuit  = race.Circuit || {};
+  const loc      = circuit.Location || {};
+  const circuitId = circuit.circuitId || '';
+  const stats    = CIRCUIT_STATS[circuitId] || {};
+  const facts    = CIRCUIT_FACTS[circuitId] || [];
+  const winners  = CIRCUIT_WINNERS[circuitId] || [];
+  const flag     = getCountryFlag(loc.country || '');
+
+  schedHd.textContent = circuit.circuitName || race.raceName;
+
+  // DRS badges
+  const drsHtml = stats.drs
+    ? Array.from({length: stats.drs}, (_, i) => '<span class="trk-drs-zone">DRS ' + (i+1) + '</span>').join('')
+    : '<span style="color:var(--muted)">—</span>';
+
+  // Stat grid
+  const statGrid =
+    '<div class="trk-stat-grid">' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Length</div><div class="trk-stat-val">' + (stats.len || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Race Laps</div><div class="trk-stat-val">' + (stats.laps || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Corners</div><div class="trk-stat-val">' + (stats.corners || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">DRS Zones</div><div class="trk-drs-bar" style="margin-top:6px">' + drsHtml + '</div></div>' +
+      '<div class="trk-stat" style="grid-column:1/-1"><div class="trk-stat-lbl">Lap Record</div><div class="trk-stat-val">' + (stats.record || '—') + '</div>' +
+        (stats.recordHolder ? '<div class="trk-stat-sub">' + stats.recordHolder + (stats.year ? ' · ' + stats.year : '') + '</div>' : '') +
+      '</div>' +
+    '</div>';
+
+  // Recent winners
+  let winnersHtml = '';
+  if (winners.length) {
+    const wRows = winners.map(function(w) {
+      const col = w.team ? teamColor(w.team.toLowerCase().replace(' ', '_')) : '#888';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border)">' +
+        '<div style="font-family:Share Tech Mono,monospace;font-size:13px;color:var(--muted);width:36px">' + w.year + '</div>' +
+        '<div style="width:3px;height:26px;background:' + col + ';border-radius:2px;flex-shrink:0"></div>' +
+        '<div style="flex:1"><div style="font-size:15px;font-weight:700">' + w.driver + '</div>' +
+          (w.team ? '<div style="font-size:11px;color:var(--muted)">' + w.team + '</div>' : '') +
+        '</div>' +
+        '<div style="font-size:20px">' + (w.year === winners[0].year ? '🥇' : '🏆') + '</div>' +
+      '</div>';
+    }).join('');
+    winnersHtml =
+      '<div class="section-hd" style="margin-top:4px">Recent Winners</div>' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px">' +
+        wRows +
+      '</div>';
+  }
+
+  // Fun facts
+  let factsHtml = '';
+  if (facts.length) {
+    const fItems = facts.map(function(f) {
+      return '<div style="display:flex;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border)">' +
+        '<div style="color:var(--red);font-size:16px;flex-shrink:0;margin-top:1px">⚑</div>' +
+        '<div style="font-size:13px;line-height:1.5;color:var(--text)">' + f + '</div>' +
+      '</div>';
+    }).join('');
+    factsHtml =
+      '<div class="section-hd" style="margin-top:4px">Did You Know?</div>' +
+      '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:4px">' +
+        fItems +
+      '</div>';
+  }
+
+  // Race date info
+  const dateInfo =
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">' +
+      'Round ' + race.round + ' · ' + flag + ' ' +
+      [loc.locality, loc.country].filter(Boolean).join(', ') +
+      ' · ' + fmtDate(race.date) +
+    '</div>';
+
+  content.innerHTML =
+    '<div class="trk-detail-back" id="scdBackBtn">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>' +
+      'Schedule' +
+    '</div>' +
+    dateInfo +
+    '<div id="trk-img-slot"><div class="trk-img-placeholder">Loading track image…</div></div>' +
+    statGrid +
+    winnersHtml +
+    factsHtml;
+
+  document.getElementById('scdBackBtn').addEventListener('click', backToSchedule);
+
+  // Fetch track image (async, injected when ready)
+  const wikiKey = CIRCUIT_LAYOUT_WIKI[circuitId];
+  if (wikiKey) {
+    get('https://en.wikipedia.org/api/rest_v1/page/summary/' + wikiKey).then(function(data) {
+      const imgSrc = (data && data.originalimage && data.originalimage.source)
+        || (data && data.thumbnail && data.thumbnail.source);
+      const slot = document.getElementById('trk-img-slot');
+      if (imgSrc && slot) {
+        const img = document.createElement('img');
+        img.className = 'trk-layout-img';
+        img.src = imgSrc;
+        img.alt = circuit.circuitName || '';
+        img.onerror = function() { this.remove(); };
+        slot.innerHTML = '';
+        slot.appendChild(img);
+      } else if (slot) {
+        slot.innerHTML = '';
+      }
+    }).catch(function() {
+      const slot = document.getElementById('trk-img-slot');
+      if (slot) slot.innerHTML = '';
+    });
+  } else {
+    const slot = document.getElementById('trk-img-slot');
+    if (slot) slot.innerHTML = '';
+  }
+}
+
+function backToSchedule() {
+  S.trackCurrentRace = null;
+  document.getElementById('scheduleHd').textContent = YEAR + ' Season Calendar';
+  document.getElementById('scheduleContent').innerHTML =
+    '<div class="loader"><div class="spinner"></div></div>';
+  renderSchedule();
+  // Scroll schedule back to top
+  const pane = document.getElementById('pane-schedule');
+  if (pane) pane.scrollTop = 0;
+}
+
+function getCountryFlag(country) {
+  const map = {
+    'Bahrain':'🇧🇭','Saudi Arabia':'🇸🇦','Australia':'🇦🇺','Japan':'🇯🇵',
+    'China':'🇨🇳','USA':'🇺🇸','United States':'🇺🇸','Italy':'🇮🇹',
+    'Monaco':'🇲🇨','Canada':'🇨🇦','Spain':'🇪🇸','Austria':'🇦🇹',
+    'UK':'🇬🇧','United Kingdom':'🇬🇧','Hungary':'🇭🇺','Belgium':'🇧🇪',
+    'Netherlands':'🇳🇱','Singapore':'🇸🇬','Azerbaijan':'🇦🇿','Mexico':'🇲🇽',
+    'Brazil':'🇧🇷','Qatar':'🇶🇦','UAE':'🇦🇪','United Arab Emirates':'🇦🇪',
+    'Portugal':'🇵🇹',
+  };
+  return map[country] || '🏁';
 }
 
 // ── History tab ───────────────────────────────────────────────────────────────
@@ -1102,157 +1325,6 @@ function backToHistoryList() {
 }
 
 
-// ── TRACKS TAB ────────────────────────────────────────────────────────────────
-async function loadTracks() {
-  if (S.trackCircuitId !== null) { renderTrackDetail(); return; }
-  document.getElementById('tracksHd').textContent = YEAR + ' Circuits';
-
-  if (!S.schedule) {
-    const cached = cacheGet('schedule', 3600000);
-    if (cached) S.schedule = cached;
-    else {
-      try {
-        const d = await jolpicaGet(JOLPICA + '/current.json');
-        if (d?.MRData?.RaceTable?.Races) { S.schedule = d.MRData.RaceTable.Races; cacheSet('schedule', S.schedule); }
-      } catch(e) {}
-    }
-  }
-
-  if (!S.schedule) {
-    document.getElementById('tracksContent').innerHTML = '<div class="error-box">Could not load circuit list. Pull down to retry.</div>';
-    return;
-  }
-
-  const now = new Date();
-  let foundNext = false;
-  const container = document.createElement('div');
-
-  for (const race of S.schedule) {
-    const raceDate = new Date(race.date + 'T' + (race.time || '12:00:00Z'));
-    const isPast = raceDate < now;
-    const isNext = !isPast && !foundNext;
-    if (isNext) foundNext = true;
-
-    const circuit = race.Circuit || {};
-    const loc = circuit.Location || {};
-    const circuitId = circuit.circuitId || '';
-    const country = loc.country || '';
-    const city = loc.locality || '';
-    const flag = getCountryFlag(country);
-
-    const card = document.createElement('div');
-    card.className = 'trk-card' + (isNext ? ' trk-next' : '') + (isPast ? ' trk-past' : '');
-    card.dataset.circuitId = circuitId;
-    card.dataset.round = race.round;
-    card.innerHTML =
-      '<div class="trk-header">' +
-        '<div class="trk-rnd">' + race.round + '</div>' +
-        '<div class="trk-info">' +
-          '<div class="trk-name">' + flag + ' ' + (circuit.circuitName || race.raceName) + '</div>' +
-          '<div class="trk-loc">' + [city, country].filter(Boolean).join(', ') + '</div>' +
-          '<div class="trk-date">' + race.raceName + ' · ' + fmtDate(race.date) + '</div>' +
-        '</div>' +
-        '<div class="trk-arrow">›</div>' +
-      '</div>';
-    card.addEventListener('click', function() {
-      S.trackCircuitId = this.dataset.circuitId;
-      S.trackCurrentRace = race;
-      renderTrackDetail();
-    });
-    container.appendChild(card);
-  }
-
-  const content = document.getElementById('tracksContent');
-  content.innerHTML = '';
-  content.appendChild(container);
-}
-
-async function renderTrackDetail() {
-  const circuitId = S.trackCircuitId;
-  const race = S.trackCurrentRace;
-  if (!race) { S.trackCircuitId = null; loadTracks(); return; }
-
-  const circuit = race.Circuit || {};
-  const loc = circuit.Location || {};
-  const stats = CIRCUIT_STATS[circuitId] || {};
-  const country = loc.country || '';
-  const city = loc.locality || '';
-  const flag = getCountryFlag(country);
-
-  document.getElementById('tracksHd').textContent = circuit.circuitName || race.raceName;
-
-  const drsZones = stats.drs
-    ? Array.from({length: stats.drs}, (_, i) => '<span class="trk-drs-zone">DRS ' + (i+1) + '</span>').join('')
-    : '<span style="color:var(--muted);font-size:12px">—</span>';
-
-  const statGrid =
-    '<div class="trk-stat-grid">' +
-      '<div class="trk-stat"><div class="trk-stat-lbl">Circuit Length</div><div class="trk-stat-val">' + (stats.len || '—') + '</div></div>' +
-      '<div class="trk-stat"><div class="trk-stat-lbl">Race Laps</div><div class="trk-stat-val">' + (stats.laps || '—') + '</div></div>' +
-      '<div class="trk-stat"><div class="trk-stat-lbl">Corners</div><div class="trk-stat-val">' + (stats.corners || '—') + '</div></div>' +
-      '<div class="trk-stat"><div class="trk-stat-lbl">DRS Zones</div><div class="trk-stat-val">' + (stats.drs || '—') + '</div><div class="trk-drs-bar">' + drsZones + '</div></div>' +
-      '<div class="trk-stat" style="grid-column:1/-1"><div class="trk-stat-lbl">Lap Record</div><div class="trk-stat-val">' + (stats.record || '—') + '</div><div class="trk-stat-sub">' + (stats.recordHolder ? stats.recordHolder + (stats.year ? ' · ' + stats.year : '') : '') + '</div></div>' +
-    '</div>';
-
-  const content = document.getElementById('tracksContent');
-  content.innerHTML =
-    '<div class="trk-detail-back" id="trkBackBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>All Circuits</div>' +
-    '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">Round ' + race.round + ' · ' + flag + ' ' + [city, country].filter(Boolean).join(', ') + '</div>' +
-    '<div id="trk-img-slot"><div class="trk-img-placeholder">Loading track image…</div></div>' +
-    statGrid;
-
-  document.getElementById('trkBackBtn').addEventListener('click', backToTrackList);
-
-  // Fetch track layout image from Wikipedia
-  const wikiKey = CIRCUIT_LAYOUT_WIKI[circuitId];
-  if (wikiKey) {
-    try {
-      const data = await get('https://en.wikipedia.org/api/rest_v1/page/summary/' + wikiKey);
-      const imgSrc = data && data.originalimage && data.originalimage.source
-        ? data.originalimage.source
-        : (data && data.thumbnail && data.thumbnail.source);
-      const slot = document.getElementById('trk-img-slot');
-      if (imgSrc && slot) {
-        const img = document.createElement('img');
-        img.className = 'trk-layout-img';
-        img.src = imgSrc;
-        img.alt = circuit.circuitName || '';
-        img.onerror = function() { this.remove(); };
-        slot.innerHTML = '';
-        slot.appendChild(img);
-      } else if (slot) {
-        slot.innerHTML = '<div class="trk-img-placeholder">No image available</div>';
-      }
-    } catch(e) {
-      const slot = document.getElementById('trk-img-slot');
-      if (slot) slot.innerHTML = '<div class="trk-img-placeholder">Image unavailable</div>';
-    }
-  } else {
-    const slot = document.getElementById('trk-img-slot');
-    if (slot) slot.innerHTML = '';
-  }
-}
-
-function backToTrackList() {
-  S.trackCircuitId = null;
-  S.trackCurrentRace = null;
-  document.getElementById('tracksContent').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
-  document.getElementById('tracksHd').textContent = YEAR + ' Circuits';
-  loadTracks();
-}
-
-function getCountryFlag(country) {
-  const map = {
-    'Bahrain':'🇧🇭','Saudi Arabia':'🇸🇦','Australia':'🇦🇺','Japan':'🇯🇵',
-    'China':'🇨🇳','USA':'🇺🇸','United States':'🇺🇸','Italy':'🇮🇹',
-    'Monaco':'🇲🇨','Canada':'🇨🇦','Spain':'🇪🇸','Austria':'🇦🇹',
-    'UK':'🇬🇧','United Kingdom':'🇬🇧','Hungary':'🇭🇺','Belgium':'🇧🇪',
-    'Netherlands':'🇳🇱','Singapore':'🇸🇬','Azerbaijan':'🇦🇿','Mexico':'🇲🇽',
-    'Brazil':'🇧🇷','Qatar':'🇶🇦','UAE':'🇦🇪','United Arab Emirates':'🇦🇪',
-    'Portugal':'🇵🇹',
-  };
-  return map[country] || '🏁';
-}
 
 
 // ── NEWS TAB ──────────────────────────────────────────────────────────────────
