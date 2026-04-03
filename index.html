@@ -170,6 +170,40 @@ nav.tabs{height:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));background:
 .hist-res-name{font-size:15px;font-weight:700}
 .hist-res-team{font-size:11px;color:var(--muted)}
 .hist-fastest{color:#a855f7;font-size:10px;font-weight:700;letter-spacing:.5px}
+
+/* ── TRACKS TAB ─────────────────────────────────────────────────────────── */
+.trk-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:8px;
+  margin-bottom:9px; overflow:hidden; cursor:pointer;
+  -webkit-tap-highlight-color:transparent; transition:border-color .15s;
+}
+.trk-card:active { border-color:var(--red); }
+.trk-card.trk-next { border-left:3px solid var(--red); }
+.trk-card.trk-past { opacity:.55; }
+.trk-header { display:flex; align-items:center; gap:12px; padding:12px 14px; }
+.trk-rnd {
+  background:var(--surface2); color:var(--muted); font-family:"Share Tech Mono",monospace;
+  font-size:13px; padding:5px 7px; border-radius:4px; min-width:34px;
+  text-align:center; flex-shrink:0;
+}
+.trk-card.trk-next .trk-rnd { background:var(--red); color:#fff; }
+.trk-info { flex:1; min-width:0; }
+.trk-name { font-size:16px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.trk-loc  { font-size:12px; color:var(--muted); margin-top:2px; }
+.trk-date { font-family:"Share Tech Mono",monospace; font-size:11px; color:var(--muted); margin-top:4px; }
+.trk-arrow { color:var(--muted); font-size:18px; flex-shrink:0; }
+/* detail */
+.trk-detail-back { display:flex; align-items:center; gap:8px; padding:4px 0 14px; cursor:pointer; color:var(--red); font-size:14px; font-weight:700; letter-spacing:.5px; }
+.trk-detail-back svg { width:18px; height:18px; }
+.trk-layout-img { width:100%; max-height:220px; object-fit:contain; border-radius:8px; background:var(--surface); display:block; margin-bottom:12px; }
+.trk-stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.trk-stat { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+.trk-stat-lbl { font-size:10px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-bottom:4px; }
+.trk-stat-val { font-family:"Share Tech Mono",monospace; font-size:16px; color:var(--text); }
+.trk-stat-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+.trk-drs-bar { display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
+.trk-drs-zone { background:#27F4D220; border:1px solid #27F4D250; border-radius:4px; padding:3px 8px; font-size:11px; color:#27F4D2; font-family:"Share Tech Mono",monospace; }
+.trk-img-placeholder { width:100%; height:160px; background:var(--surface); border-radius:8px; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:13px; margin-bottom:12px; }
 </style>
 </head>
 <body>
@@ -192,6 +226,10 @@ nav.tabs{height:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));background:
   <div id="pane-schedule" class="pane">
     <div class="section-hd" id="scheduleHd">Season Calendar</div>
     <div id="scheduleContent"><div class="loader"><div class="spinner"></div>Loading schedule…</div></div>
+  </div>
+  <div id="pane-tracks" class="pane">
+    <div class="section-hd" id="tracksHd">2026 Circuits</div>
+    <div id="tracksContent"><div class="loader"><div class="spinner"></div>Loading circuits…</div></div>
   </div>
   <div id="pane-history" class="pane">
     <div class="section-hd" id="historyHd">Race Results</div>
@@ -220,6 +258,10 @@ nav.tabs{height:calc(var(--tab-h) + env(safe-area-inset-bottom,0px));background:
   <button class="tab" id="tab-history" onclick="switchTab('history')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/><path d="M3.6 9A9 9 0 0 1 12 3"/><polyline points="3 3 3.6 9 9.6 8.4"/></svg>
     History
+  </button>
+  <button class="tab" id="tab-tracks" onclick="switchTab('tracks')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17 C3 17 5 7 9 7 C13 7 11 17 15 17 C19 17 21 7 21 7"/><circle cx="6" cy="17" r="1.5" fill="currentColor"/><circle cx="18" cy="7" r="1.5" fill="currentColor"/></svg>
+    Tracks
   </button>
 </nav>
 <script>
@@ -269,6 +311,63 @@ const CIRCUIT_WIKI = {
   losail:'Lusail_International_Circuit',
 };
 
+
+// ── Circuit stats (hardcoded for speed & reliability) ─────────────────────
+const CIRCUIT_STATS = {
+  bahrain:      { len:'5.412 km', laps:57, corners:15, drs:2, record:'1:31.447', recordHolder:'P. de la Rosa', year:2005 },
+  jeddah:       { len:'6.174 km', laps:50, corners:27, drs:3, record:'1:30.734', recordHolder:'L. Hamilton', year:2021 },
+  albert_park:  { len:'5.303 km', laps:58, corners:16, drs:4, record:'1:20.235', recordHolder:'C. Leclerc', year:2022 },
+  suzuka:       { len:'5.807 km', laps:53, corners:18, drs:2, record:'1:30.983', recordHolder:'L. Hamilton', year:2019 },
+  shanghai:     { len:'5.451 km', laps:56, corners:16, drs:2, record:'1:32.238', recordHolder:'M. Schumacher', year:2004 },
+  miami:        { len:'5.412 km', laps:57, corners:19, drs:3, record:'1:29.708', recordHolder:'M. Verstappen', year:2023 },
+  imola:        { len:'4.909 km', laps:63, corners:19, drs:2, record:'1:15.484', recordHolder:'M. Verstappen', year:2022 },
+  monaco:       { len:'3.337 km', laps:78, corners:19, drs:1, record:'1:12.909', recordHolder:'L. Hamilton', year:2021 },
+  villeneuve:   { len:'4.361 km', laps:70, corners:14, drs:2, record:'1:13.078', recordHolder:'V. Bottas', year:2019 },
+  catalunya:    { len:'4.675 km', laps:66, corners:16, drs:2, record:'1:18.149', recordHolder:'M. Verstappen', year:2021 },
+  silverstone:  { len:'5.891 km', laps:52, corners:18, drs:2, record:'1:27.097', recordHolder:'M. Verstappen', year:2020 },
+  hungaroring:  { len:'4.381 km', laps:70, corners:14, drs:2, record:'1:16.627', recordHolder:'L. Hamilton', year:2020 },
+  spa:          { len:'7.004 km', laps:44, corners:19, drs:2, record:'1:46.286', recordHolder:'V. Bottas', year:2018 },
+  zandvoort:    { len:'4.259 km', laps:72, corners:14, drs:2, record:'1:11.097', recordHolder:'M. Verstappen', year:2021 },
+  monza:        { len:'5.793 km', laps:53, corners:11, drs:2, record:'1:21.046', recordHolder:'R. Barrichello', year:2004 },
+  baku:         { len:'6.003 km', laps:51, corners:20, drs:2, record:'1:43.009', recordHolder:'C. Leclerc', year:2019 },
+  marina_bay:   { len:'4.940 km', laps:62, corners:19, drs:3, record:'1:35.867', recordHolder:'K. Räikkönen', year:2018 },
+  americas:     { len:'5.513 km', laps:56, corners:20, drs:2, record:'1:36.169', recordHolder:'C. Leclerc', year:2022 },
+  rodriguez:    { len:'4.304 km', laps:71, corners:17, drs:2, record:'1:17.774', recordHolder:'V. Bottas', year:2021 },
+  interlagos:   { len:'4.309 km', laps:71, corners:15, drs:2, record:'1:10.540', recordHolder:'V. Bottas', year:2018 },
+  las_vegas:    { len:'6.201 km', laps:50, corners:17, drs:2, record:'1:35.490', recordHolder:'O. Piastri', year:2024 },
+  yas_marina:   { len:'5.281 km', laps:58, corners:16, drs:3, record:'1:26.103', recordHolder:'J. Button', year:2009 },
+  losail:       { len:'5.380 km', laps:57, corners:16, drs:2, record:'1:24.319', recordHolder:'M. Verstappen', year:2023 },
+  portimao:     { len:'4.653 km', laps:66, corners:15, drs:2, record:'1:19.912', recordHolder:'L. Hamilton', year:2020 },
+  mugello:      { len:'5.245 km', laps:59, corners:15, drs:1, record:'1:17.069', recordHolder:'L. Hamilton', year:2020 },
+};
+
+// Wikipedia image page titles for circuit LAYOUT images specifically
+const CIRCUIT_LAYOUT_WIKI = {
+  bahrain:'Bahrain_International_Circuit',
+  jeddah:'Jeddah_Street_Circuit',
+  albert_park:'Melbourne_Grand_Prix_Circuit',
+  suzuka:'Suzuka_International_Racing_Course',
+  shanghai:'Shanghai_International_Circuit',
+  miami:'Miami_International_Autodrome',
+  imola:'Autodromo_Enzo_e_Dino_Ferrari',
+  monaco:'Circuit_de_Monaco',
+  villeneuve:'Circuit_Gilles_Villeneuve',
+  catalunya:'Circuit_de_Barcelona-Catalunya',
+  silverstone:'Silverstone_Circuit',
+  hungaroring:'Hungaroring',
+  spa:'Circuit_de_Spa-Francorchamps',
+  zandvoort:'Circuit_Zandvoort',
+  monza:'Autodromo_Nazionale_Monza',
+  baku:'Baku_City_Circuit',
+  marina_bay:'Marina_Bay_Street_Circuit',
+  americas:'Circuit_of_the_Americas',
+  rodriguez:'Aut%C3%B3dromo_Hermanos_Rodr%C3%ADguez',
+  interlagos:'Aut%C3%B3dromo_Jos%C3%A9_Carlos_Pace',
+  las_vegas:'Las_Vegas_Street_Circuit',
+  yas_marina:'Yas_Marina_Circuit',
+  losail:'Lusail_International_Circuit',
+};
+
 const WX_ICON = {
   0:'☀️',1:'🌤️',2:'⛅',3:'☁️',
   45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',
@@ -290,6 +389,7 @@ const S = {
   driverStandings:null,constructorStandings:null,
   schedule:null,lastRace:null,
   historyRound:null,historyResults:null,
+  trackCircuitId:null,
   refreshTimer:null,isLive:false,
 };
 
@@ -406,6 +506,7 @@ async function refreshCurrentTab() {
   else if (S.activeTab === 'standings') { S.driverStandings=null; await loadStandings(); }
   else if (S.activeTab === 'schedule') { S.schedule=null; await loadSchedule(); }
   else if (S.activeTab === 'history') { S.historyResults=null; await loadHistory(); }
+  else if (S.activeTab === 'tracks') { S.trackCircuitId=null; await loadTracks(); }
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
@@ -418,6 +519,7 @@ function switchTab(tab) {
   if (tab==='standings'&&!S.driverStandings) loadStandings();
   if (tab==='schedule'&&!S.schedule) loadSchedule();
   if (tab==='history') loadHistory();
+  if (tab==='tracks') loadTracks();
 }
 
 function setStandingsTab(sub) {
@@ -953,6 +1055,159 @@ function backToHistoryList() {
   S.historyRound=null;S.historyResults=null;
   document.getElementById('historyContent').innerHTML='<div class="loader"><div class="spinner"></div></div>';
   loadHistory();
+}
+
+
+// ── TRACKS TAB ────────────────────────────────────────────────────────────────
+async function loadTracks() {
+  if (S.trackCircuitId !== null) { renderTrackDetail(); return; }
+  document.getElementById('tracksHd').textContent = YEAR + ' Circuits';
+
+  if (!S.schedule) {
+    const cached = cacheGet('schedule', 3600000);
+    if (cached) S.schedule = cached;
+    else {
+      try {
+        const d = await jolpicaGet(JOLPICA + '/current.json');
+        if (d?.MRData?.RaceTable?.Races) { S.schedule = d.MRData.RaceTable.Races; cacheSet('schedule', S.schedule); }
+      } catch(e) {}
+    }
+  }
+
+  if (!S.schedule) {
+    document.getElementById('tracksContent').innerHTML = '<div class="error-box">Could not load circuit list. Pull down to retry.</div>';
+    return;
+  }
+
+  const now = new Date();
+  let foundNext = false;
+  const container = document.createElement('div');
+
+  for (const race of S.schedule) {
+    const raceDate = new Date(race.date + 'T' + (race.time || '12:00:00Z'));
+    const isPast = raceDate < now;
+    const isNext = !isPast && !foundNext;
+    if (isNext) foundNext = true;
+
+    const circuit = race.Circuit || {};
+    const loc = circuit.Location || {};
+    const circuitId = circuit.circuitId || '';
+    const country = loc.country || '';
+    const city = loc.locality || '';
+    const flag = getCountryFlag(country);
+
+    const card = document.createElement('div');
+    card.className = 'trk-card' + (isNext ? ' trk-next' : '') + (isPast ? ' trk-past' : '');
+    card.dataset.circuitId = circuitId;
+    card.dataset.round = race.round;
+    card.innerHTML =
+      '<div class="trk-header">' +
+        '<div class="trk-rnd">' + race.round + '</div>' +
+        '<div class="trk-info">' +
+          '<div class="trk-name">' + flag + ' ' + (circuit.circuitName || race.raceName) + '</div>' +
+          '<div class="trk-loc">' + [city, country].filter(Boolean).join(', ') + '</div>' +
+          '<div class="trk-date">' + race.raceName + ' · ' + fmtDate(race.date) + '</div>' +
+        '</div>' +
+        '<div class="trk-arrow">›</div>' +
+      '</div>';
+    card.addEventListener('click', function() {
+      S.trackCircuitId = this.dataset.circuitId;
+      S.trackCurrentRace = race;
+      renderTrackDetail();
+    });
+    container.appendChild(card);
+  }
+
+  const content = document.getElementById('tracksContent');
+  content.innerHTML = '';
+  content.appendChild(container);
+}
+
+async function renderTrackDetail() {
+  const circuitId = S.trackCircuitId;
+  const race = S.trackCurrentRace;
+  if (!race) { S.trackCircuitId = null; loadTracks(); return; }
+
+  const circuit = race.Circuit || {};
+  const loc = circuit.Location || {};
+  const stats = CIRCUIT_STATS[circuitId] || {};
+  const country = loc.country || '';
+  const city = loc.locality || '';
+  const flag = getCountryFlag(country);
+
+  document.getElementById('tracksHd').textContent = circuit.circuitName || race.raceName;
+
+  const drsZones = stats.drs
+    ? Array.from({length: stats.drs}, (_, i) => '<span class="trk-drs-zone">DRS ' + (i+1) + '</span>').join('')
+    : '<span style="color:var(--muted);font-size:12px">—</span>';
+
+  const statGrid =
+    '<div class="trk-stat-grid">' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Circuit Length</div><div class="trk-stat-val">' + (stats.len || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Race Laps</div><div class="trk-stat-val">' + (stats.laps || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">Corners</div><div class="trk-stat-val">' + (stats.corners || '—') + '</div></div>' +
+      '<div class="trk-stat"><div class="trk-stat-lbl">DRS Zones</div><div class="trk-stat-val">' + (stats.drs || '—') + '</div><div class="trk-drs-bar">' + drsZones + '</div></div>' +
+      '<div class="trk-stat" style="grid-column:1/-1"><div class="trk-stat-lbl">Lap Record</div><div class="trk-stat-val">' + (stats.record || '—') + '</div><div class="trk-stat-sub">' + (stats.recordHolder ? stats.recordHolder + (stats.year ? ' · ' + stats.year : '') : '') + '</div></div>' +
+    '</div>';
+
+  const content = document.getElementById('tracksContent');
+  content.innerHTML =
+    '<div class="trk-detail-back" id="trkBackBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>All Circuits</div>' +
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">Round ' + race.round + ' · ' + flag + ' ' + [city, country].filter(Boolean).join(', ') + '</div>' +
+    '<div id="trk-img-slot"><div class="trk-img-placeholder">Loading track image…</div></div>' +
+    statGrid;
+
+  document.getElementById('trkBackBtn').addEventListener('click', backToTrackList);
+
+  // Fetch track layout image from Wikipedia
+  const wikiKey = CIRCUIT_LAYOUT_WIKI[circuitId];
+  if (wikiKey) {
+    try {
+      const data = await get('https://en.wikipedia.org/api/rest_v1/page/summary/' + wikiKey);
+      const imgSrc = data && data.originalimage && data.originalimage.source
+        ? data.originalimage.source
+        : (data && data.thumbnail && data.thumbnail.source);
+      const slot = document.getElementById('trk-img-slot');
+      if (imgSrc && slot) {
+        const img = document.createElement('img');
+        img.className = 'trk-layout-img';
+        img.src = imgSrc;
+        img.alt = circuit.circuitName || '';
+        img.onerror = function() { this.remove(); };
+        slot.innerHTML = '';
+        slot.appendChild(img);
+      } else if (slot) {
+        slot.innerHTML = '<div class="trk-img-placeholder">No image available</div>';
+      }
+    } catch(e) {
+      const slot = document.getElementById('trk-img-slot');
+      if (slot) slot.innerHTML = '<div class="trk-img-placeholder">Image unavailable</div>';
+    }
+  } else {
+    const slot = document.getElementById('trk-img-slot');
+    if (slot) slot.innerHTML = '';
+  }
+}
+
+function backToTrackList() {
+  S.trackCircuitId = null;
+  S.trackCurrentRace = null;
+  document.getElementById('tracksContent').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  document.getElementById('tracksHd').textContent = YEAR + ' Circuits';
+  loadTracks();
+}
+
+function getCountryFlag(country) {
+  const map = {
+    'Bahrain':'🇧🇭','Saudi Arabia':'🇸🇦','Australia':'🇦🇺','Japan':'🇯🇵',
+    'China':'🇨🇳','USA':'🇺🇸','United States':'🇺🇸','Italy':'🇮🇹',
+    'Monaco':'🇲🇨','Canada':'🇨🇦','Spain':'🇪🇸','Austria':'🇦🇹',
+    'UK':'🇬🇧','United Kingdom':'🇬🇧','Hungary':'🇭🇺','Belgium':'🇧🇪',
+    'Netherlands':'🇳🇱','Singapore':'🇸🇬','Azerbaijan':'🇦🇿','Mexico':'🇲🇽',
+    'Brazil':'🇧🇷','Qatar':'🇶🇦','UAE':'🇦🇪','United Arab Emirates':'🇦🇪',
+    'Portugal':'🇵🇹',
+  };
+  return map[country] || '🏁';
 }
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
