@@ -889,12 +889,27 @@ async function loadHistory() {
   const now=new Date();
   const pastRaces=S.schedule.filter(r=>new Date(r.date+'T00:00:00Z')<now).reverse();
   if(!pastRaces.length){document.getElementById('historyContent').innerHTML='<p style="color:var(--muted);text-align:center;padding:40px">No completed races yet this season.</p>';return;}
-  let html='';
+
+  // Build using DOM elements — avoids ALL quote-escaping issues
+  const container = document.createElement('div');
   for(const race of pastRaces) {
-    const winner=race.Results?race.Results[0]?.Driver?.familyName:'Tap to view';
-    html+='<div class="hist-race has-results" onclick=\"showHistoryRound(\x27\"+race.round+\"\x27)\"><div class="hist-rnd">'+race.round+'</div><div class="hist-info"><div class="hist-name">'+race.raceName+'</div><div class="hist-winner">'+fmtDate(race.date)+(winner&&winner!=='Tap to view'?' · 🏆 '+winner:'')+'</div></div><div class="hist-arrow">›</div></div>';
+    const winner = race.Results ? race.Results[0]?.Driver?.familyName : null;
+    const el = document.createElement('div');
+    el.className = 'hist-race has-results';
+    el.dataset.round = race.round;
+    el.innerHTML =
+      '<div class="hist-rnd">'+race.round+'</div>'+
+      '<div class="hist-info">'+
+        '<div class="hist-name">'+race.raceName+'</div>'+
+        '<div class="hist-winner">'+fmtDate(race.date)+(winner ? ' · 🏆 '+winner : '')+'</div>'+
+      '</div>'+
+      '<div class="hist-arrow">›</div>';
+    el.addEventListener('click', function() { showHistoryRound(this.dataset.round); });
+    container.appendChild(el);
   }
-  document.getElementById('historyContent').innerHTML=html;
+  const content = document.getElementById('historyContent');
+  content.innerHTML = '';
+  content.appendChild(container);
 }
 
 async function showHistoryRound(round) {
